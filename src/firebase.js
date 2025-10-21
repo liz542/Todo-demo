@@ -27,4 +27,5 @@ export const messaging = getMessaging(app);
 // Helper functions for Google sign-in/out
 export const signInWithGoogle = () => signInWithPopup(auth, provider);
 export const logOut = () => signOut(auth);
+console.log("Firebase Config:", firebaseConfig);
 
