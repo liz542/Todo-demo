@@ -1,16 +1,30 @@
-// src/firebase.js - placeholders. Replace with your Firebase config.
-export function initFirebase(){
-  console.log('initFirebase placeholder')
-}
+// src/firebase.js
+import { initializeApp } from "firebase/app";
+import { getAuth, GoogleAuthProvider, signInWithPopup, signOut } from "firebase/auth";
+import { getFirestore } from "firebase/firestore";
+import { getMessaging, getToken, onMessage } from "firebase/messaging";
 
-export const auth = {
-  onAuthStateChanged: (cb) => { return () => {} },
-  signInWithGoogle: async () => { throw new Error('Not configured') },
-  signOut: async () => {}
+// Pull secrets from Vercel environment variables
+const firebaseConfig = {
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+  appId: import.meta.env.VITE_FIREBASE_APP_ID,
+  vapidKey: import.meta.env.VITE_FIREBASE_VAPID_KEY,
 };
 
-export async function requestNotificationPermission(){
-  if (!('Notification' in window)) return
-  const permission = await Notification.requestPermission()
-  if (permission === 'granted') console.log('Notifications permission granted.')
-}
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
+
+// Export Firebase services
+export const auth = getAuth(app);
+export const provider = new GoogleAuthProvider();
+export const db = getFirestore(app);
+export const messaging = getMessaging(app);
+
+// Helper functions for Google sign-in/out
+export const signInWithGoogle = () => signInWithPopup(auth, provider);
+export const logOut = () => signOut(auth);
+
