@@ -1,20 +1,8 @@
-// src/firebase.js
-
 import { initializeApp } from "firebase/app";
-import { 
-  getAuth, 
-  GoogleAuthProvider, 
-  signInWithPopup, 
-  signOut 
-} from "firebase/auth";
+import { getAuth, GoogleAuthProvider, signInWithPopup, signOut } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
-import { 
-  getMessaging, 
-  getToken, 
-  onMessage 
-} from "firebase/messaging";
+import { getMessaging, getToken, onMessage } from "firebase/messaging";
 
-// --- Firebase configuration from environment variables ---
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
   authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
@@ -25,33 +13,31 @@ const firebaseConfig = {
   vapidKey: import.meta.env.VITE_FIREBASE_VAPID_KEY
 };
 
-// --- Initialize Firebase ---
+// Initialize Firebase
 const app = initializeApp(firebaseConfig);
 
-// --- Core Firebase services ---
+// Core services
 export const auth = getAuth(app);
 export const provider = new GoogleAuthProvider();
 export const db = getFirestore(app);
 export const messaging = getMessaging(app);
 
-// --- Authentication helpers ---
+// Auth helpers
 export const signInWithGoogle = () => signInWithPopup(auth, provider);
 export const logOut = () => signOut(auth);
 
-// --- Firebase initialization wrapper ---
+// Initialize Firebase for app
 export function initFirebase() {
   console.log("✅ Firebase initialized");
   return { app, auth, db, messaging };
 }
 
-// --- Request notification permission and handle tokens ---
+// Notification token request
 export async function requestNotificationPermission() {
   try {
     const permission = await Notification.requestPermission();
     if (permission === "granted") {
-      const token = await getToken(messaging, {
-        vapidKey: import.meta.env.VITE_FIREBASE_VAPID_KEY
-      });
+      const token = await getToken(messaging, { vapidKey: firebaseConfig.vapidKey });
       console.log("🔔 Push token:", token);
       return token;
     } else {
@@ -63,10 +49,13 @@ export async function requestNotificationPermission() {
   }
 }
 
-// --- Foreground message handler ---
+// Foreground messages
 onMessage(messaging, (payload) => {
-  console.log("📩 Message received while app in foreground:", payload);
+  console.log("📩 Message received:", payload);
 });
 
-// Debugging: check that Firebase config loaded
+// Debug Firebase config
 console.log("Firebase Config:", firebaseConfig);
+
+export default initFirebase;
+
