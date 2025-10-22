@@ -28,4 +28,9 @@ export const messaging = getMessaging(app);
 export const signInWithGoogle = () => signInWithPopup(auth, provider);
 export const logOut = () => signOut(auth);
 console.log("Firebase Config:", firebaseConfig);
+// Initialize Firebase app and return initialized services
+export function initFirebase() {
+  console.log("Firebase initialized")
+  return { app, auth, db, messaging }
+}
 
