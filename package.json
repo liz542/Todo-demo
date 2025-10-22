@@ -2,11 +2,12 @@
   "name": "todo-demo",
   "version": "0.1.0",
   "private": true,
-  "scripts": {
-    "start": "vite",
-    "build": "vite build",
-    "preview": "vite preview"
-  },
+ "scripts": {
+  "dev": "vite",
+  "build": "vite build",
+  "preview": "vite preview"
+}
+
   "dependencies": {
     "firebase": "^11.0.0",
     "react": "^18.2.0",
