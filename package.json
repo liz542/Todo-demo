@@ -20,4 +20,5 @@
     "@vitejs/plugin-react": "^4.0.0"
   }
 }
+npm audit fix
 
