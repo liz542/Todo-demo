@@ -9,7 +9,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "vue": "^3.3.5"        // or "react": "^18.3.0" depending on your framework
+   "react": "^18.3.0" 
   },
   "devDependencies": {
     "vite": "^5.0.0"
