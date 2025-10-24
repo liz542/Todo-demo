@@ -1,8 +1,7 @@
 {
   "name": "todo-demo",
   "version": "1.0.0",
-  "private": true,
-  "scripts": {
+    "scripts": {
     "dev": "vite",
     "start": "vite",
     "build": "vite build",
