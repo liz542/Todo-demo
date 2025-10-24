@@ -1,14 +1,18 @@
 {
   "name": "todo-demo",
   "version": "1.0.0",
-    "scripts": {
+  "scripts": {
     "dev": "vite",
     "start": "vite",
     "build": "vite build",
     "preview": "vite preview"
   },
   "dependencies": {
-   "react": "^18.3.0" 
+    "react": "^18.3.0",
+    "react-dom": "^18.3.0",
+    "date-fns": "^3.6.0",
+    "uuid": "^9.0.1",
+    "firebase": "^10.12.0"
   },
   "devDependencies": {
     "vite": "^5.0.0"
