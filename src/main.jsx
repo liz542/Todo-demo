@@ -4,8 +4,12 @@ import App from './App'
 import './styles.css'
 import { initFirebase } from './firebase';
 
-createRoot(document.getElementById('root')).render(<App />)
-const { auth } = initFirebase(); // Initialize Firebase
-const app = createApp(App);
-app.provide('auth', auth);
-app.mount('#app');
+// Initialize Firebase before rendering the app
+initFirebase();
+
+const root = ReactDOM.createRoot(document.getElementById('root'));
+root.render(
+  <React.StrictMode>
+    <App />
+  </React.StrictMode>
+);
