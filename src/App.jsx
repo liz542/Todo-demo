@@ -1,5 +1,5 @@
 import React, {useEffect, useState} from 'react'
-import { initFirebase, auth, requestNotificationPermission } from './firebase'
+import initFirebase, { auth, requestNotificationPermission } from './firebase'
 import { v4 as uuidv4 } from 'uuid'
 import { formatISO } from 'date-fns'
 
