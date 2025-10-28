@@ -3,6 +3,10 @@ import { initializeApp } from "firebase/app";
 import { getAuth, GoogleAuthProvider, signInWithPopup, signOut } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 import { getMessaging, getToken, onMessage } from "firebase/messaging";
+import { getStorage, ref, uploadBytes, getDownloadURL } from "firebase/storage";
+
+export const storage = getStorage(app);
+export { ref, uploadBytes, getDownloadURL };
 
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
