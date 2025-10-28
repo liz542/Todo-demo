@@ -88,26 +88,15 @@ function App() {
 
       {user && (
         <>
-          <form onSubmit={addTask} style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
-            <input
-              className="input"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              placeholder="Add a task..."
-            />
-            <select className="input" value={priority} onChange={(e) => setPriority(e.target.value)}>
-              <option>High</option>
-              <option>Medium</option>
-              <option>Low</option>
-            </select>
-            <input
-              className="input"
-              type="date"
-              value={due}
-              onChange={(e) => setDue(e.target.value)}
-            />
-            <button className="button" type="submit">Add</button>
-          </form>
+          <form onSubmit={addTask} style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 12 }}>
+  <input className="input" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Add a task..." />
+  <select className="input" value={priority} onChange={(e) => setPriority(e.target.value)}>
+    <option>High</option><option>Medium</option><option>Low</option>
+  </select>
+  <input className="input" type="date" value={due} onChange={(e) => setDue(e.target.value)} />
+  <input className="input" type="file" onChange={(e) => setFile(e.target.files[0])} />
+  <button className="button" type="submit">Add</button>
+</form>
 
           <div className="tasks">
             {tasks.length === 0 ? (
