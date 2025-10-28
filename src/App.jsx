@@ -138,12 +138,11 @@ const addTask = async (e) => {
   e.preventDefault();
   if (!title.trim() || !user) return;
 
-  let fileUrl = null;
-  if (file) {
-    const fileRef = ref(storage, `uploads/${user.uid}/${file.name}`);
-    await uploadBytes(fileRef, file);
-    fileUrl = await getDownloadURL(fileRef);
-  }
+  {t.fileUrl && (
+  <div className="small">
+    📎 <a href={t.fileUrl} target="_blank" rel="noopener noreferrer">View Attachment</a>
+  </div>
+)}
 
   const newTask = {
     uid: user.uid,
