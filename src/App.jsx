@@ -138,3 +138,36 @@ function App() {
 }
 
 export default App
+import { storage, ref, uploadBytes, getDownloadURL } from './firebase'
+import { collection, addDoc } from 'firebase/firestore'
+
+...
+
+const [file, setFile] = useState(null);
+
+const addTask = async (e) => {
+  e.preventDefault();
+  if (!title.trim() || !user) return;
+
+  let fileUrl = null;
+  if (file) {
+    const fileRef = ref(storage, `uploads/${user.uid}/${file.name}`);
+    await uploadBytes(fileRef, file);
+    fileUrl = await getDownloadURL(fileRef);
+  }
+
+  const newTask = {
+    uid: user.uid,
+    title,
+    priority,
+    due,
+    category,
+    done: false,
+    fileUrl,
+    createdAt: formatISO(new Date())
+  };
+
+  await addDoc(collection(db, 'tasks'), newTask);
+  setTitle('');
+  setFile(null);
+};
