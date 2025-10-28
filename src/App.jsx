@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from 'react'
-import initFirebase, { auth, signInWithGoogle, logOut, requestNotificationPermission } from './firebase'
+import { initFirebase, auth, db, requestNotificationPermission } from './firebase'
 import { v4 as uuidv4 } from 'uuid'
 import { formatISO } from 'date-fns'
+import { collection, addDoc, onSnapshot, query, where, deleteDoc, doc, updateDoc } from 'firebase/firestore'
+import { signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged } from "firebase/auth"
 
-// Initialize Firebase once
 initFirebase()
 
 function App() {
@@ -14,73 +15,67 @@ function App() {
   const [due, setDue] = useState('')
   const [category, setCategory] = useState('General')
 
-  // Auth state listener
+  // --- Auth state listener ---
   useEffect(() => {
-    const unsub = auth?.onAuthStateChanged
-      ? auth.onAuthStateChanged(u => {
-          setUser(u)
-          if (u) {
-            const raw = localStorage.getItem('td_tasks_' + u.uid)
-            if (raw) setTasks(JSON.parse(raw))
-          } else {
-            setTasks([])
-          }
-        })
-      : () => {}
-    return () => unsub && unsub()
+    const unsubscribe = onAuthStateChanged(auth, (u) => {
+      setUser(u)
+      if (u) loadTasks(u.uid)
+      else setTasks([])
+    })
+    return () => unsubscribe()
   }, [])
 
-  // Save tasks to localStorage
-  useEffect(() => {
-    if (user) localStorage.setItem('td_tasks_' + user.uid, JSON.stringify(tasks))
-  }, [tasks, user])
-
-  // Login with Google
-  async function handleLogin() {
-    if (signInWithGoogle) {
-      try {
-        const userCredential = await signInWithGoogle()
-        console.log('User signed in:', userCredential.user)
-        await requestNotificationPermission()
-      } catch (err) {
-        console.error('Login failed:', err)
-      }
-    } else {
-      alert('Firebase auth not configured. See README.')
-    }
+  // --- Load tasks from Firestore ---
+  const loadTasks = (uid) => {
+    const q = query(collection(db, 'tasks'), where('uid', '==', uid))
+    const unsub = onSnapshot(q, (snapshot) => {
+      const docs = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }))
+      setTasks(docs.sort((a, b) => b.createdAt.localeCompare(a.createdAt)))
+    })
+    return () => unsub()
   }
 
-  // Logout
-  function handleLogout() {
-    logOut()
-  }
-
-  // Add task
-  function addTask(e) {
+  // --- Add a new task ---
+  const addTask = async (e) => {
     e.preventDefault()
-    if (!title.trim()) return
-    const id = uuidv4()
-    const newTask = { id, title, priority, due, category, createdAt: formatISO(new Date()), recurring: null }
-    setTasks(prev => [newTask, ...prev])
+    if (!title.trim() || !user) return
+    const newTask = {
+      uid: user.uid,
+      title,
+      priority,
+      due,
+      category,
+      done: false,
+      createdAt: formatISO(new Date())
+    }
+    await addDoc(collection(db, 'tasks'), newTask)
     setTitle('')
   }
 
-  // Toggle done
-  function toggleDone(id) {
-    setTasks(prev => prev.map(t => (t.id === id ? { ...t, done: !t.done } : t)))
+  // --- Toggle task done ---
+  const toggleDone = async (task) => {
+    await updateDoc(doc(db, 'tasks', task.id), { done: !task.done })
   }
 
-  // Delete task
-  function deleteTask(id) {
-    setTasks(prev => prev.filter(t => t.id !== id))
+  // --- Delete a task ---
+  const deleteTask = async (task) => {
+    await deleteDoc(doc(db, 'tasks', task.id))
   }
+
+  // --- Sign in/out ---
+  const handleLogin = async () => {
+    const provider = new GoogleAuthProvider()
+    await signInWithPopup(auth, provider)
+    await requestNotificationPermission()
+  }
+  const handleLogout = () => signOut(auth)
 
   return (
     <div className="app">
       <div className="header">
         <div>
           <div className="h1">To-Do List</div>
-          <div className="small">Simple • Mobile-friendly • Google Login</div>
+          <div className="small">Synced • Google Login • Priority</div>
         </div>
         <div>
           {user ? (
@@ -91,39 +86,53 @@ function App() {
         </div>
       </div>
 
-      <form onSubmit={addTask} style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
-        <input className="input" value={title} onChange={e => setTitle(e.target.value)} placeholder="Add a task..." />
-        <select className="input" value={priority} onChange={e => setPriority(e.target.value)}>
-          <option>High</option>
-          <option>Medium</option>
-          <option>Low</option>
-        </select>
-        <input className="input" type="date" value={due} onChange={e => setDue(e.target.value)} />
-        <button className="button" type="submit">Add</button>
-      </form>
+      {user && (
+        <>
+          <form onSubmit={addTask} style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
+            <input
+              className="input"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              placeholder="Add a task..."
+            />
+            <select className="input" value={priority} onChange={(e) => setPriority(e.target.value)}>
+              <option>High</option>
+              <option>Medium</option>
+              <option>Low</option>
+            </select>
+            <input
+              className="input"
+              type="date"
+              value={due}
+              onChange={(e) => setDue(e.target.value)}
+            />
+            <button className="button" type="submit">Add</button>
+          </form>
 
-      <div className="tasks">
-        {tasks.length === 0 ? (
-          <div className="note">No tasks yet.</div>
-        ) : (
-          tasks.map(t => (
-            <div key={t.id} className="task">
-              <div>
-                <div style={{ fontWeight: 600 }}>{t.title}</div>
-                <div className="small">{t.priority} • {t.due || 'no due date'}</div>
-              </div>
-              <div className="controls">
-                <button className="button" onClick={() => toggleDone(t.id)}>{t.done ? 'Undone' : 'Done'}</button>
-                <button className="button" onClick={() => deleteTask(t.id)}>Delete</button>
-              </div>
-            </div>
-          ))
-        )}
-      </div>
-
-      <div style={{ marginTop: 14 }} className="note">
-        Preview demo: notifications, storage, and server sync require Firebase config (see README).
-      </div>
+          <div className="tasks">
+            {tasks.length === 0 ? (
+              <div className="note">No tasks yet.</div>
+            ) : (
+              tasks.map((t) => (
+                <div key={t.id} className="task">
+                  <div>
+                    <div style={{ fontWeight: 600 }}>{t.title}</div>
+                    <div className="small">
+                      {t.priority} • {t.due || 'no due date'}
+                    </div>
+                  </div>
+                  <div className="controls">
+                    <button className="button" onClick={() => toggleDone(t)}>
+                      {t.done ? 'Undone' : 'Done'}
+                    </button>
+                    <button className="button" onClick={() => deleteTask(t)}>Delete</button>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        </>
+      )}
     </div>
   )
 }
